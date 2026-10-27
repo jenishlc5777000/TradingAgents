@@ -382,6 +382,41 @@ tradingagents backtest NVDA,AAPL --start 2026-06-01 --end 2026-08-01 --every 7
 
 Each cell is scored on realized alpha against the instrument's regional benchmark, grouped by rating. A decision is entered at the first close after its date, because a run reads news published after that day's close. Your own memory log is never written to, and re-running the same grid with `run_id=result.run_id` skips the cells that already ran, so an interrupted sweep continues where it stopped.
 
+## Rule-based strategies and backtesting
+
+Beside the LLM agents, TradingAgents carries a deterministic engine ported from a MetaTrader trading bot: six strategies behind an ADX regime filter, ATR-based stops, a breakeven-then-trailing exit, fixed-money or percent risk with optional martingale, daily loss and trade caps, and a backtester that splits history into in-sample and out-of-sample halves.
+
+| Strategy | Trades in | Idea |
+|---|---|---|
+| `trend_following` | trend | Pullback to the fast EMA in the direction of the higher-timeframe EMA200 |
+| `mean_reversion` | range | RSI extreme at a Bollinger Band |
+| `breakout` | trend, neutral | Close beyond the Donchian channel, with a volatility filter |
+| `ema_cross` | trend, neutral | Fast/slow EMA cross confirmed by MACD |
+| `squeeze_breakout` | range, neutral | Quiet Bollinger width, then a close outside the band |
+| `stoch_reversal` | range, neutral | Stochastic turns out of an extreme near a confirmed swing level |
+
+```bash
+tradingagents quant strategies                       # which are on, and when they fire
+tradingagents quant enable breakout                  # or: disable NAME
+tradingagents quant set risk.sl_atr_multiplier 2     # any setting, validated before it is saved
+tradingagents quant preset swing                     # scalp (M5/H1), intraday (M15/H4), swing (H1/D1), position (D1)
+tradingagents quant settings risk                    # show a section; `reset` restores defaults
+
+tradingagents quant scan AAPL,GC=F --date 2026-10-01 # regime, which strategies fire, stop and targets
+tradingagents quant backtest AAPL,BTC-USD --start 2025-01-01 --out reports/aapl
+tradingagents quant backtest AAPL --sweep risk.sl_atr_multiplier=1,1.5,2,2.5   # one setting, re-run per value
+tradingagents quant backtest AAPL --set risk.compounding=false --set strategies.breakout.enabled=false
+tradingagents quant optimize AAPL --iterations 200 --workers 4 --apply          # search, ranked out-of-sample
+```
+
+Settings are saved in `~/.tradingagents/quant_settings.json` with the same sections as the original bot (`timeframes`, `indicators`, `regime`, `strategies`, `risk`, `trailing`, `backtest`), plus `costs.spread_pct` because Yahoo quotes no spread. `--set path=value` changes a setting for one run without saving it.
+
+How the replay works: a signal forms on a bar's close and fills at the next open plus the spread; the stop is checked first inside each bar; results are in R and in money under your risk settings, with the account rules applied across symbols. The report (`--out`) holds `report.html` with the equity curve, `trades.csv` and `summary.json`. The search ranks setups on the out-of-sample half only and marks one `robust` when both halves are profitable; treat a search as a way to find candidates, then check them on other symbols and dates.
+
+Limits to know: Yahoo serves about 60 days of 5- and 15-minute bars and about two years of hourly bars (H4 is built from H1), so the fast presets cannot test long periods; the run says where the data starts. Lots, share rounding and slippage are not modelled. This replay does not call the LLM agents, so it measures the rules alone, whereas `tradingagents backtest` scores the agents' decisions.
+
+The two halves meet in the market analyst, which gets a `get_strategy_signals` tool: it reads your enabled strategies on bars closed by the run's date, so the agents see the same regime, signal and levels that `quant scan` prints.
+
 ## Reproducibility
 
 TradingAgents is LLM-driven, so two runs of the same ticker and date can differ. This is expected for a research tool built on language models, not a defect. The variation comes from a few distinct sources, and it helps to separate them.

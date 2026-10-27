@@ -6,6 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Changes that need action when upgrading are listed under "Upgrading from" in their release.
 
+<<<<<<< Updated upstream
 ## [0.7.1] — 2026-10-27
 
 Decisions are scored only on final closes and settle across long market holidays, a model's unpadded date no longer reads filings made after the run date, and fixes to portfolios, prices, SEC statements, reports, Azure and Claude settings.
@@ -36,6 +37,15 @@ Decisions are scored only on final closes and settle across long market holidays
 ### Contributors
 
 [@alanfate3](https://github.com/alanfate3), [@aranlucas](https://github.com/aranlucas), [@BichengWang](https://github.com/BichengWang), [@Bortlesboat](https://github.com/Bortlesboat), [@hoffman988](https://github.com/hoffman988), [@jhill-cmd](https://github.com/jhill-cmd), [@muhib-karim](https://github.com/muhib-karim), [@pei711](https://github.com/pei711), [@peiji1981](https://github.com/peiji1981), [@rudycelekli](https://github.com/rudycelekli), [@Shubham-Padkonde](https://github.com/Shubham-Padkonde), [@stevexyz2003](https://github.com/stevexyz2003), [@SuperMarioYL](https://github.com/SuperMarioYL), [@sytfly](https://github.com/sytfly), [@yuv009](https://github.com/yuv009).
+=======
+## [Unreleased]
+
+### Added
+
+- **Rule-based strategy engine.** `tradingagents quant` brings six strategies (trend following, mean reversion, breakout, EMA cross, squeeze breakout, stochastic reversal), an ADX regime filter, ATR stops with a breakeven and trailing exit, money or percent risk with optional martingale, and daily loss and trade caps. Settings are saved per user and can be changed with `quant set`, `enable`, `disable` and `preset`.
+- **Strategy backtests.** `quant backtest` replays the strategies on Yahoo bars with an in-sample and out-of-sample split, a per-strategy breakdown, a one-setting `--sweep` and an HTML, CSV and JSON report. `quant optimize` searches strategy combinations and risk settings, ranked on the out-of-sample half.
+- **Strategy signals for the agents.** The market analyst can call `get_strategy_signals`, and `quant scan` prints the same view.
+>>>>>>> Stashed changes
 
 ## [0.7.0] — 2026-10-16
 

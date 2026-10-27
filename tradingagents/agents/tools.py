@@ -95,6 +95,31 @@ def get_verified_market_snapshot(
 
 
 @tool
+def get_strategy_signals(
+    symbol: Annotated[str, InjectedState("company_of_interest")],
+    curr_date: Annotated[str, "the current trading date, YYYY-mm-dd"],
+    trade_date: Annotated[str, InjectedState("trade_date")] = "",
+) -> str:
+    """Rule-based strategy scan for the instrument under analysis.
+
+    Runs the user's enabled quant strategies (trend following, mean reversion,
+    breakout, EMA cross, squeeze breakout, stochastic reversal) on bars closed by
+    curr_date and reports the market regime, which strategies fire, and the stop
+    and target levels of the one that does. Treat it as one rule-based input
+    beside your own reading of the chart, not as an instruction to trade.
+    """
+    from tradingagents.quant.scan import render_scan, scan_symbol
+    from tradingagents.quant.settings import load_settings
+
+    try:
+        return render_scan(scan_symbol(symbol, load_settings(), as_of=as_of(curr_date, trade_date)))
+    except VendorUnavailableError as exc:
+        return vendor_unavailable("get_strategy_signals", exc)
+    except (NoMarketDataError, ValueError) as exc:
+        return f"No strategy scan is available for {symbol}: {exc}"
+
+
+@tool
 def get_fundamentals(
     ticker: Annotated[str, InjectedState("company_of_interest")],
     curr_date: Annotated[str, "current date you are trading at, yyyy-mm-dd"],

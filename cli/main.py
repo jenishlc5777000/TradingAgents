@@ -8,6 +8,7 @@ from rich.markup import escape
 from cli.display import console
 from cli.models import AnalystType, AssetType
 from cli.prompts import filter_analysts_for_asset_type, parse_analysts
+from cli.quant import quant_app
 from cli.run import run_analysis
 from tradingagents.backtest import iter_grid, run_backtest, summarize
 from tradingagents.default_config import DEFAULT_CONFIG
@@ -31,6 +32,8 @@ app = typer.Typer(
     help="TradingAgents CLI: Multi-Agents LLM Financial Trading Framework",
     add_completion=True,  # Enable shell completion
 )
+
+app.add_typer(quant_app, name="quant")
 
 
 @app.callback(invoke_without_command=True)
